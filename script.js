@@ -3,7 +3,7 @@
 // que você pega no painel do Supabase em Project Settings > API.
 const SUPABASE_URL = 'https://qrxebbqsubnqldvofktu.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_qNqX0_gMbKr9evvIUD_qow_QRdzWqJy';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const EDIT_PIN = '2620'; // combine essa senha com a cliente; pode trocar aqui no código
 
@@ -38,7 +38,7 @@ function waLink(digits, text){
 
 async function loadState(){
   try{
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('site_data')
       .select('content')
       .eq('id', 'main')
@@ -52,7 +52,7 @@ async function loadState(){
 
 async function saveState(){
   try{
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('site_data')
       .update({ content: state, updated_at: new Date().toISOString() })
       .eq('id', 'main');
