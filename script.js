@@ -1,11 +1,11 @@
-// AVISO: este site usa "window.storage", um recurso de salvamento que só existe
-// dentro do ambiente de artefatos do Claude (claude.ai). Se este arquivo for
-// hospedado em outro servidor (Hostinger, WordPress, etc.), o botão de edição
-// não vai conseguir salvar as alterações — vai precisar de um backend próprio
-// (ex: um banco de dados simples) para guardar fotos e preços nesse caso.
+// Este site salva os dados (preços, textos, fotos) no Supabase, um banco de
+// dados na nuvem gratuito. Troque as duas linhas abaixo pelas suas chaves,
+// que você pega no painel do Supabase em Project Settings > API.
+const SUPABASE_URL = 'https://qrxebbqsubnqldvofktu.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_qNqX0_gMbKr9evvIUD_qow_QRdzWqJy';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const STORAGE_KEY = 'flordeluz-site-data';
-const EDIT_PIN = '1234'; // combine essa senha com a cliente; pode trocar aqui no código
+const EDIT_PIN = '2620'; // combine essa senha com a cliente; pode trocar aqui no código
 
 let state = null;
 let editing = false;
@@ -38,8 +38,13 @@ function waLink(digits, text){
 
 async function loadState(){
   try{
-    const res = await window.storage.get(STORAGE_KEY, true);
-    state = res && res.value ? JSON.parse(res.value) : defaultState();
+    const { data, error } = await supabase
+      .from('site_data')
+      .select('content')
+      .eq('id', 'main')
+      .single();
+    if(error) throw error;
+    state = (data && data.content && Object.keys(data.content).length) ? data.content : defaultState();
   }catch(e){ state = defaultState(); }
   render();
   setupReveal();
@@ -47,7 +52,11 @@ async function loadState(){
 
 async function saveState(){
   try{
-    await window.storage.set(STORAGE_KEY, JSON.stringify(state), true);
+    const { error } = await supabase
+      .from('site_data')
+      .update({ content: state, updated_at: new Date().toISOString() })
+      .eq('id', 'main');
+    if(error) throw error;
     return true;
   }catch(e){
     alert('Não consegui salvar agora. Verifique a internet e tente de novo.');
